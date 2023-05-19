@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+import com.app.blog.exception.ResourceAlreadyExistsException;
 import com.app.blog.exception.ResourceNotFoundException;
 import com.app.blog.repository.PostRepository;
 import org.slf4j.Logger;
@@ -52,12 +53,17 @@ public class CommentService {
 		logger.info("addComment {}", this.getClass().getName());
 		Optional<Post> post = postRepository.findById(id);
 		if(post.isPresent()) {
+			Optional<Comment> com = commentRepository.findById(comment.getId());
+			if (com.isPresent()) {
+				logger.error("addComment {} Comment already exists!", this.getClass().getName());
+				throw new ResourceAlreadyExistsException();
+			}
 			Timestamp timestamp = new Timestamp(new Date().getTime());
 			comment.setTime(timestamp);
 			comment.setPost(post.get());
 			return commentRepository.save(comment);
 		} else {
-			logger.error("addComment {} Record not found", this.getClass().getName());
+			logger.error("addComment {} Post not found", this.getClass().getName());
 			throw new ResourceNotFoundException();
 		}
 	}

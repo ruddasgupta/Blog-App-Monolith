@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 
+import com.app.blog.exception.ResourceAlreadyExistsException;
 import com.app.blog.model.User;
 import com.app.blog.repository.UserRepository;
 import org.slf4j.Logger;
@@ -96,6 +97,11 @@ public class PostService {
 		logger.info("createPost {}", this.getClass().getName());
 		Optional<User> user = userRepository.findById(id);
 		if(user.isPresent()) {
+			Optional<Post> p = postRepository.findById(id);
+			if (p.isPresent()) {
+				logger.error("createPost {} Record already exists", this.getClass().getName());
+				throw new ResourceAlreadyExistsException();
+			}
 			post.setUser(user.get());
 			return postRepository.save(post);
 		} else {
